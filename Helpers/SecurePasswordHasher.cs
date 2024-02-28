@@ -24,10 +24,14 @@ namespace ChatingApp.Helpers
         {
             // Create salt
             byte[] salt;
+#pragma warning disable SYSLIB0023 // Type or member is obsolete
             new RNGCryptoServiceProvider().GetBytes(salt = new byte[SaltSize]);
+#pragma warning restore SYSLIB0023 // Type or member is obsolete
 
             // Create hash
+#pragma warning disable SYSLIB0041 // Type or member is obsolete
             var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
+#pragma warning restore SYSLIB0041 // Type or member is obsolete
             var hash = pbkdf2.GetBytes(HashSize);
 
             // Combine salt and hash
@@ -89,7 +93,9 @@ namespace ChatingApp.Helpers
             Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
             // Create hash with given salt
+#pragma warning disable SYSLIB0041 // Type or member is obsolete
             var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
+#pragma warning restore SYSLIB0041 // Type or member is obsolete
             byte[] hash = pbkdf2.GetBytes(HashSize);
 
             // Get result
