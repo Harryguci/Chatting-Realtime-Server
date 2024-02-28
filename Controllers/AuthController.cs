@@ -87,6 +87,7 @@ namespace ChatingApp.Controllers
             return Ok(account);
         }
 
+        [NonAction]
         public string GetClaim(string token, string claimType)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -98,6 +99,7 @@ namespace ChatingApp.Controllers
             return stringClaimValue;
         }
 
+        [NonAction]
         public string GenerateToken(Account account)
         {
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(MySecret));
@@ -125,6 +127,7 @@ namespace ChatingApp.Controllers
             return tokenHandler.WriteToken(token);
         }
 
+        [NonAction]
         public bool ValidateCurrentToken(string token)
         {
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(MySecret));

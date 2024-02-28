@@ -100,11 +100,13 @@ namespace ChatingApp.Controllers
             return NoContent();
         }
 
+        [NonAction]
         private bool AccountExists(int id)
         {
             return _context.Accounts.Any(e => e.Id == id);
         }
 
+        [NonAction]
         private bool UsernameExists(string username)
         {
             return _context.Accounts.Any(a => a.Username == username);
