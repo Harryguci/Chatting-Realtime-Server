@@ -7,11 +7,15 @@ public partial class Message
 {
     public string Id { get; set; } = null!;
 
-    public string? Username { get; set; }
+    public string Username { get; set; } = null!;
 
-    public string? Friendusername { get; set; }
+    public string Content { get; set; } = null!;
 
-    public string? Content { get; set; }
+    public string RoomId { get; set; } = null!;
 
-    public DateTime? CreateAt { get; set; }
+    public string? Filename { get; set; }
+
+    public DateTime? CreateAt { get; set; } = DateTime.Now;
+
+    public DateTime? DeleteAt { get; set; }
 }

@@ -5,19 +5,17 @@ namespace ChatingApp.Models;
 
 public partial class Account
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = null!;
 
     public string Username { get; set; } = null!;
 
     public string Password { get; set; } = null!;
 
-    public string? Roles { get; set; }
+    public string Roles { get; set; } = null!;
 
-    public DateTime? Datebirth { get; set; }
+    public string? Email { get; set; }
 
-    public string? Emaill { get; set; }
+    public DateTime? LastLogin { get; set; }
 
-    public DateTime? CreateAt { get; set; }
-
-    public DateTime? DeleteAt { get; set; }
+    public virtual ICollection<RoomAccount> RoomAccounts { get; set; } = new List<RoomAccount>();
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ChatingApp.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace New.Namespace;
+namespace ChatingApp.Context;
 
 public partial class ChatingContext : DbContext
 {
@@ -20,46 +20,49 @@ public partial class ChatingContext : DbContext
 
     public virtual DbSet<Message> Messages { get; set; }
 
+    public virtual DbSet<Notification> Notifications { get; set; }
+
     public virtual DbSet<Relationship> Relationships { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-////#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=(Local);Database=CHATING;Integrated Security=True;Persist Security Info=False;Trust Server Certificate=True;");
+    public virtual DbSet<Room> Rooms { get; set; }
+
+    public virtual DbSet<RoomAccount> RoomAccounts { get; set; }
+
+    //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+    //        => optionsBuilder.UseSqlServer("Server=(Local);Database=CHATING;Trusted_Connection=True;Integrated Security=True;Persist Security Info=False;Trust Server Certificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ACCOUNT__3214EC27EA76A363");
+            entity.HasKey(e => e.Id).HasName("PK__Account__3214EC27E5110524");
 
-            entity.ToTable("ACCOUNT");
+            entity.ToTable("Account");
 
-            entity.HasIndex(e => e.Emaill, "UQ__ACCOUNT__A6C3B5B180A5791E").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Account__161CF72436614D57").IsUnique();
 
-            entity.HasIndex(e => e.Username, "UQ__ACCOUNT__B15BE12E8F6255DC").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Account__B15BE12ED599A3F5").IsUnique();
 
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.CreateAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("CREATE_AT");
-            entity.Property(e => e.Datebirth)
-                .HasColumnType("datetime")
-                .HasColumnName("DATEBIRTH");
-            entity.Property(e => e.DeleteAt)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnType("datetime")
-                .HasColumnName("DELETE_AT");
-            entity.Property(e => e.Emaill)
+            entity.Property(e => e.Id)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("ID");
+            entity.Property(e => e.Email)
                 .HasMaxLength(500)
                 .IsUnicode(false)
-                .HasColumnName("EMAILL");
+                .HasColumnName("EMAIL");
+            entity.Property(e => e.LastLogin)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("LAST_LOGIN");
             entity.Property(e => e.Password)
-                .HasMaxLength(1000)
+                .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("PASSWORD");
             entity.Property(e => e.Roles)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
+                .IsUnicode(false)
                 .HasColumnName("ROLES");
             entity.Property(e => e.Username)
                 .HasMaxLength(100)
@@ -69,7 +72,7 @@ public partial class ChatingContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__MESSAGE__3214EC27EE241C88");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC27029A9597");
 
             entity.ToTable("MESSAGE");
 
@@ -79,27 +82,79 @@ public partial class ChatingContext : DbContext
                 .HasColumnName("ID");
             entity.Property(e => e.Content)
                 .HasMaxLength(500)
+                .IsUnicode(false)
                 .HasColumnName("CONTENT");
             entity.Property(e => e.CreateAt)
                 .HasColumnType("datetime")
                 .HasColumnName("CREATE_AT");
-            entity.Property(e => e.Friendusername)
+            entity.Property(e => e.DeleteAt)
+                .HasColumnType("datetime")
+                .HasColumnName("DELETE_AT");
+            entity.Property(e => e.Filename)
                 .HasMaxLength(100)
-                .HasColumnName("FRIENDUSERNAME");
+                .IsUnicode(false)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("FILENAME");
+            entity.Property(e => e.RoomId)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("ROOM_ID");
             entity.Property(e => e.Username)
                 .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("USERNAME");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__NOTIFICA__3214EC2759190BC5");
+
+            entity.ToTable("NOTIFICATION");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("ID");
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("DESCRIPTION");
+            entity.Property(e => e.Seen)
+                .HasDefaultValue(false)
+                .HasColumnName("SEEN");
+            entity.Property(e => e.Source)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasDefaultValue("SYSTEM")
+                .HasColumnName("SOURCE");
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("TITLE");
+            entity.Property(e => e.Type)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("TYPE");
+            entity.Property(e => e.Username)
+                .HasMaxLength(100)
+                .IsUnicode(false)
                 .HasColumnName("USERNAME");
         });
 
         modelBuilder.Entity<Relationship>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("RELATIONSHIP");
+            entity.HasKey(e => e.Id).HasName("PK__RELATION__3214EC27E7ECF52A");
 
-            entity.Property(e => e.LevelFriend)
-                .HasMaxLength(300)
-                .HasColumnName("LEVEL_FRIEND");
+            entity.ToTable("RELATIONSHIP");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("ID");
+            entity.Property(e => e.Type)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasDefaultValue("NORMAL")
+                .HasColumnName("TYPE");
             entity.Property(e => e.User1)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -108,18 +163,52 @@ public partial class ChatingContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("USER2");
+        });
 
-            entity.HasOne(d => d.User1Navigation).WithMany()
-                .HasPrincipalKey(p => p.Username)
-                .HasForeignKey(d => d.User1)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("RELATIONSHIP_USER1_FK");
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ROOM__3214EC2743EF8AC8");
 
-            entity.HasOne(d => d.User2Navigation).WithMany()
-                .HasPrincipalKey(p => p.Username)
-                .HasForeignKey(d => d.User2)
+            entity.ToTable("ROOM");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("ID");
+            entity.Property(e => e.Type)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("TYPE");
+        });
+
+        modelBuilder.Entity<RoomAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ROOM_ACC__3214EC278A8A786E");
+
+            entity.ToTable("ROOM_ACCOUNT");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.RoomId)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("ROOM_ID");
+            entity.Property(e => e.Username)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("USERNAME");
+
+            entity.HasOne(d => d.Room).WithMany(p => p.RoomAccounts)
+                .HasForeignKey(d => d.RoomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("RELATIONSHIP_USER2_FK");
+                .HasConstraintName("FK__ROOM_ACCO__ROOM___0A9D95DB");
+
+            entity.HasOne(d => d.UsernameNavigation).WithMany(p => p.RoomAccounts)
+                .HasPrincipalKey(p => p.Username)
+                .HasForeignKey(d => d.Username)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ROOM_ACCO__USERN__17036CC0");
         });
 
         OnModelCreatingPartial(modelBuilder);

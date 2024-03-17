@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ChatingApp.Context;
 using ChatingApp.Models;
-using New.Namespace;
-using Microsoft.IdentityModel.Tokens;
+using ChatingApp.Helpers;
 
 namespace ChatingApp.Controllers
 {
@@ -16,7 +16,6 @@ namespace ChatingApp.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly ChatingContext _context;
-        private readonly int DefaultQuatify = 10;
 
         public MessagesController(ChatingContext context)
         {
@@ -25,27 +24,36 @@ namespace ChatingApp.Controllers
 
         // GET: api/Messages
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessages(string? username, string? friend, int? limits, int? pageIndex)
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
         {
-            limits = limits ?? DefaultQuatify;
-            pageIndex = pageIndex ?? 1;
+            var query = _context.Messages.OrderBy(p => p.CreateAt);
 
-            var query = _context.Messages.Select(x => x);
+            return await query.ToListAsync();
+        }
 
-            if (!username.IsNullOrEmpty() || !friend.IsNullOrEmpty())
-            {
-                query = query.Where(
-                    x => (x.Username == username && x.Friendusername == friend)
-                    || (x.Username == friend && x.Friendusername == username));
-            }
+        [HttpGet("RoomId/{roomId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Message>>> GetFromRoomId(string roomId, int? limit)
+        {
+            if (limit == null) limit = 10;
+            var query = _context.Messages
+                .Where(p => p.RoomId == roomId);
 
-            int skipQualify = Math.Max(query.Count(), limits.Value) - limits.Value;
+            var size = query.Count();
 
             return await query
-                .Skip(skipQualify)
-                .Take(limits.Value)
                 .OrderBy(p => p.CreateAt)
+                .Skip(Math.Max(0, size - limit.Value))
                 .ToListAsync();
+        }
+
+        [HttpGet("Count")]
+        public ActionResult Count([Bind("roomId")] string roomId)
+        {
+            int count = _context.Messages.Where(x => x.RoomId == roomId).Count();
+
+            return Ok(new { count = count });
         }
 
         // GET: api/Messages/5
@@ -96,14 +104,21 @@ namespace ChatingApp.Controllers
         // POST: api/Messages
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Message>> PostMessage([Bind("username,friendUsername,content")] Message message)
+        public async Task<ActionResult<Message>> PostMessage([Bind("id,username,content,roomId")] Message message)
         {
-            var id = $"{message.Username}_{message.Friendusername}_{_context.Messages.Count()}";
+            int num = _context.Messages.Where(p => p.RoomId == message.RoomId).Count();
+            string id = $"{message.RoomId}_${num}";
+
+            while (MessageExists(id))
+            {
+                num++;
+                id = $"{message.RoomId}_${num}";
+            }
+
             message.Id = id;
             message.CreateAt = DateTime.Now;
 
             _context.Messages.Add(message);
-
             try
             {
                 await _context.SaveChangesAsync();
@@ -139,6 +154,19 @@ namespace ChatingApp.Controllers
             return NoContent();
         }
 
+        [HttpDelete("All")]
+        public async Task<IActionResult> DeleteAll()
+        {
+            var query = await _context.Messages.Where(p => p.CreateAt == null).ToListAsync();
+            if (query == null)
+            {
+                return NotFound();
+            }
+            _context.Messages.RemoveRange(query);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
         private bool MessageExists(string id)
         {
             return _context.Messages.Any(e => e.Id == id);

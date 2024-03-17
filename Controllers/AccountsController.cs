@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ChatingApp.Context;
 using ChatingApp.Models;
-using New.Namespace;
+using ChatingApp.Helpers;
+using System.Diagnostics;
 
 namespace ChatingApp.Controllers
 {
@@ -23,14 +25,19 @@ namespace ChatingApp.Controllers
 
         // GET: api/Accounts
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
+            var user = HttpContext.Features.Get<IUserFeature>();
+
+            if (user != null)
+                Debug.WriteLine("[Context] " + user.Username);
             return await _context.Accounts.ToListAsync();
         }
 
         // GET: api/Accounts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetAccount(int id)
+        public async Task<ActionResult<Account>> GetAccount(string id)
         {
             var account = await _context.Accounts.FindAsync(id);
 
@@ -42,12 +49,33 @@ namespace ChatingApp.Controllers
             return account;
         }
 
+        [HttpGet("Find/{username}")]
+        [Authorize]
+        public ActionResult<IEnumerable<Account>> FindByUsername(string username)
+        {
+            var result = _context.Accounts.Where(p => p.Username.ToLower().StartsWith(username)).ToList();
+            var currentUser = HttpContext.Items["User"] as Account;
+
+            List<Relationship>? listFriend = null;
+
+            if (currentUser != null)
+                listFriend = _context.Relationships
+                    .Where(p => (p.User1.StartsWith(username) && p.User2 == currentUser.Username)
+                    || (p.User1 == currentUser.Username && p.User2.StartsWith(username)))
+                    .ToList();
+
+            if (result == null)
+                return NotFound();
+            else
+                return Ok(new { result, listFriend = (listFriend != null ? listFriend : []) });
+        }
+
         // PUT: api/Accounts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{username}")]
-        public async Task<IActionResult> PutAccount(string username, Account account)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutAccount(string id, Account account)
         {
-            if (username != account.Username)
+            if (id != account.Id)
             {
                 return BadRequest();
             }
@@ -60,7 +88,7 @@ namespace ChatingApp.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UsernameExists(username))
+                if (!AccountExists(id))
                 {
                     return NotFound();
                 }
@@ -76,17 +104,40 @@ namespace ChatingApp.Controllers
         // POST: api/Accounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Account>> PostAccount(Account account)
+        public async Task<ActionResult<Account>> PostAccount([Bind("id,username,password,email,roles")] Account account)
         {
+            var t = _context.Accounts.Count();
+            var num = t.ToString();
+
+            for (var i = 0; i <= 5 - t.ToString().Length; i++)
+                num = '0' + num;
+
+            account.Id = $"AC${num}";
+            account.Password = SecurePasswordHasher.Hash(account.Password);
+
             _context.Accounts.Add(account);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (AccountExists(account.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return CreatedAtAction("GetAccount", new { id = account.Id }, account);
         }
 
         // DELETE: api/Accounts/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAccount(int id)
+        public async Task<IActionResult> DeleteAccount(string id)
         {
             var account = await _context.Accounts.FindAsync(id);
             if (account == null)
@@ -100,16 +151,9 @@ namespace ChatingApp.Controllers
             return NoContent();
         }
 
-        [NonAction]
-        private bool AccountExists(int id)
+        private bool AccountExists(string id)
         {
             return _context.Accounts.Any(e => e.Id == id);
-        }
-
-        [NonAction]
-        private bool UsernameExists(string username)
-        {
-            return _context.Accounts.Any(a => a.Username == username);
         }
     }
 }

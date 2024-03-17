@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using New.Namespace;
+using ChatingApp.Context;
+using ChatingApp.Helpers;
+using ChatingApp.Services;
+using ChatingApp.Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,6 +13,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<IWebsocketHandler, WebsocketHandler>();
+
+// configure strongly typed settings object
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+// configure DI for application services
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Add Cors for React Js
 var myAllowSpecificOrigins = "harryguci";
@@ -29,7 +40,7 @@ builder.Services.AddDbContextPool<ChatingContext>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -38,10 +49,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(myAllowSpecificOrigins);
 
+// custom jwt auth middleware
+app.UseMiddleware<JwtMiddleware>();
+
 app.UseHttpsRedirection();
+
+app.UseWebSockets();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
+// Terminate Middleware
 app.Run();
