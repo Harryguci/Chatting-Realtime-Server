@@ -15,7 +15,7 @@ public partial class Message
 
     public string? Filename { get; set; }
 
-    public DateTime? CreateAt { get; set; } = DateTime.Now;
+    public DateTime? CreateAt { get; set; }
 
     public DateTime? DeleteAt { get; set; }
 }

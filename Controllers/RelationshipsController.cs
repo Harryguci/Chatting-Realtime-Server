@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ChatingApp.Context;
 using ChatingApp.Models;
+using ChatingApp.Helpers;
 
 namespace ChatingApp.Controllers
 {
@@ -23,9 +24,15 @@ namespace ChatingApp.Controllers
 
         // GET: api/Relationships
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Relationship>>> GetRelationships()
         {
-            return await _context.Relationships.ToListAsync();
+            var currentUser = HttpContext.Items["User"] as Account;
+            if (currentUser == null) return BadRequest();
+
+            return await _context.Relationships
+                .Where(p => (p.User1 == currentUser.Username || p.User2 == currentUser.Username))
+                .ToListAsync();
         }
 
         // GET: api/Relationships/5
@@ -78,6 +85,17 @@ namespace ChatingApp.Controllers
         [HttpPost]
         public async Task<ActionResult<Relationship>> PostRelationship(Relationship relationship)
         {
+            var number = _context.Relationships.Count();
+            var id = $"re0000{number}";
+
+            while (_context.Relationships.Any(p => p.Id == id))
+            {
+                number++;
+                id = $"re0000{number}";
+            }
+
+            relationship.Id = id;
+
             _context.Relationships.Add(relationship);
 
             try

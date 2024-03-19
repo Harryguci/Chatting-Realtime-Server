@@ -18,6 +18,8 @@ public partial class ChatingContext : DbContext
 
     public virtual DbSet<Account> Accounts { get; set; }
 
+    public virtual DbSet<FriendRequest> FriendRequests { get; set; }
+
     public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
@@ -28,9 +30,9 @@ public partial class ChatingContext : DbContext
 
     public virtual DbSet<RoomAccount> RoomAccounts { get; set; }
 
-    //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-    //        => optionsBuilder.UseSqlServer("Server=(Local);Database=CHATING;Trusted_Connection=True;Integrated Security=True;Persist Security Info=False;Trust Server Certificate=True;");
+    //=> optionsBuilder.UseSqlServer("Server=(Local);Database=CHATING;Integrated Security=True;Persist Security Info=False;Trust Server Certificate=True;Trusted_Connection=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +70,44 @@ public partial class ChatingContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("USERNAME");
+        });
+
+        modelBuilder.Entity<FriendRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__FriendRe__3214EC0722F4A167");
+
+            entity.ToTable("FriendRequest");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Accepted)
+                .HasDefaultValue(false)
+                .HasColumnName("ACCEPTED");
+            entity.Property(e => e.CreateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("CREATE_AT");
+            entity.Property(e => e.User1)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("USER1");
+            entity.Property(e => e.User2)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("USER2");
+
+            //entity.HasOne(d => d.User1Navigation).WithMany(p => p.FriendRequestUser1Navigations)
+            //    .HasPrincipalKey(p => p.Username)
+            //    .HasForeignKey(d => d.User1)
+            //    .OnDelete(DeleteBehavior.ClientSetNull)
+            //    .HasConstraintName("FK__FriendReq__USER1__43D61337");
+
+            //entity.HasOne(d => d.User2Navigation).WithMany(p => p.FriendRequestUser2Navigations)
+            //    .HasPrincipalKey(p => p.Username)
+            //    .HasForeignKey(d => d.User2)
+            //    .OnDelete(DeleteBehavior.ClientSetNull)
+            //    .HasConstraintName("FK__FriendReq__USER2__44CA3770");
         });
 
         modelBuilder.Entity<Message>(entity =>

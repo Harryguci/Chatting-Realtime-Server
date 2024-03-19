@@ -17,5 +17,9 @@ public partial class Account
 
     public DateTime? LastLogin { get; set; }
 
-    public virtual ICollection<RoomAccount> RoomAccounts { get; set; } = new List<RoomAccount>();
+    // public virtual ICollection<FriendRequest>? FriendRequestUser1Navigations { get; set; } = new List<FriendRequest>();
+
+    // public virtual ICollection<FriendRequest>? FriendRequestUser2Navigations { get; set; } = new List<FriendRequest>();
+
+    public virtual ICollection<RoomAccount>? RoomAccounts { get; set; } = new List<RoomAccount>();
 }

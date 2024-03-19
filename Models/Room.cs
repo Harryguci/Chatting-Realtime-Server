@@ -7,7 +7,7 @@ public partial class Room
 {
     public string Id { get; set; } = null!;
 
-    public string Type { get; set; } = null!; // friend, group
+    public string Type { get; set; } = null!;
 
     public virtual ICollection<RoomAccount>? RoomAccounts { get; set; } = new List<RoomAccount>();
 }

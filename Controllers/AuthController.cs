@@ -3,10 +3,12 @@ using ChatingApp.Helpers;
 using ChatingApp.Models;
 using ChatingApp.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace ChatingApp.Controllers
 {
@@ -16,22 +18,45 @@ namespace ChatingApp.Controllers
     {
         private readonly ChatingContext _context;
         private IUserService _userService;
+        private readonly AppSettings _appSettings;
         
         private static readonly string MySecret = "asdv234234^&%&^%&^hjsdfb2%%%";
 
-        public AuthController(ChatingContext context, IUserService userService)
+        public AuthController(ChatingContext context, IUserService userService, IOptions<AppSettings> appSettings)
         {
             this._context = context;
             this._userService = userService;
+            _appSettings = appSettings.Value;
         }
 
         [HttpPost("Login")]
-        public IActionResult Login([Bind("username,password")] AuthenticateRequest account)
+        public async Task<IActionResult> Login([Bind("username,password")] AuthenticateRequest account)
         {
             var response = _userService.Authenticate(account);
 
             if (response == null)
                 return BadRequest(new { message = "Your username or password is incorrect" });
+
+            var currentUser = _context.Accounts.Where(p => p.Username == account.Username).FirstOrDefault();
+           
+            if (currentUser == null)
+            {
+                return BadRequest();
+            }
+
+            currentUser.LastLogin = null;
+
+            HttpClient httpClient = new HttpClient();
+            using StringContent jsonContent = new(
+                           JsonSerializer.Serialize(currentUser),
+                           Encoding.UTF8,
+                           "application/json");
+
+            using HttpResponseMessage response2 = await new HttpClient().PutAsync($"{_appSettings.URI}/api/Accounts/{currentUser.Id}", jsonContent);
+
+            response2.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response2.Content.ReadAsStringAsync();
 
             return Ok(response);
         }
@@ -77,6 +102,58 @@ namespace ChatingApp.Controllers
             }
 
             return Ok(account);
+        }
+
+        [HttpPut("Logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var currentUser = HttpContext.Items["User"] as Account;
+            if (currentUser == null)
+            {
+                return BadRequest();
+            }
+
+            currentUser.LastLogin = DateTime.Now;
+        
+            using StringContent jsonContent = new(
+                           JsonSerializer.Serialize(currentUser),
+                           Encoding.UTF8,
+                           "application/json");
+
+            using HttpResponseMessage response = await new HttpClient().PutAsync($"{_appSettings.URI}/api/Accounts/{currentUser.Id}", jsonContent);
+
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(currentUser);
+        }
+
+        [HttpPut("Reconnect")]
+        [Authorize]
+        public async Task<IActionResult> Reconnect()
+        {
+            var currentUser = HttpContext.Items["User"] as Account;
+            if (currentUser == null)
+            {
+                return BadRequest();
+            }
+
+            currentUser.LastLogin = null;
+
+            using StringContent jsonContent = new(
+                           JsonSerializer.Serialize(currentUser),
+                           Encoding.UTF8,
+                           "application/json");
+
+            using HttpResponseMessage response = await new HttpClient().PutAsync($"{_appSettings.URI}/api/Accounts/{currentUser.Id}", jsonContent);
+
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(currentUser);
         }
 
         [NonAction]
