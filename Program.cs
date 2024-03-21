@@ -22,7 +22,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Add Cors for React Js
-var myAllowSpecificOrigins = "harryguci";
+var myAllowSpecificOrigins = "chating-application";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: myAllowSpecificOrigins,
