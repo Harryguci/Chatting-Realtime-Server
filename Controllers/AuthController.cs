@@ -1,7 +1,8 @@
 ﻿using ChatingApp.Context;
 using ChatingApp.Helpers;
 using ChatingApp.Models;
-using ChatingApp.Services;
+using ChatingApp.Services.Implements;
+using ChatingApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -44,7 +45,7 @@ namespace ChatingApp.Controllers
                 return BadRequest();
             }
 
-            currentUser.LastLogin = null;
+            currentUser.LastLogin = default;
 
             HttpClient httpClient = new HttpClient();
             using StringContent jsonContent = new(
@@ -66,20 +67,15 @@ namespace ChatingApp.Controllers
         {
             // AC$000000
             var number = _context.Accounts.Count();
-            var id = $"AC${number}";
+            var id = Guid.NewGuid();
 
-            while(isAccountExist(id))
-            {
-                number++;
-                id = $"AC${number}";
-            }
             account.Id = id;
 
             if (_context.Accounts.Any(p => p.Username == account.Username))
             {
                 return BadRequest(new
                 {
-                    error = "username is already exist",
+                    error = "UserName is already exist",
                 });
             }
 
@@ -140,7 +136,7 @@ namespace ChatingApp.Controllers
                 return BadRequest();
             }
 
-            currentUser.LastLogin = null;
+            currentUser.LastLogin = default;
 
             using StringContent jsonContent = new(
                            JsonSerializer.Serialize(currentUser),
@@ -156,11 +152,11 @@ namespace ChatingApp.Controllers
             return Ok(currentUser);
         }
 
-        [NonAction]
-        public bool isAccountExist(string id)
-        {
-            return _context.Accounts.Any(p => p.Id == id);
-        }
+        //[NonAction]
+        //public bool isAccountExist(string id)
+        //{
+        //    return _context.Accounts.Any(p => p.Id == id);
+        //}
 
         [NonAction]
         public static string GetClaim(string token, string claimType)

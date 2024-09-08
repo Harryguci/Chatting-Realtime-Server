@@ -55,7 +55,7 @@ public partial class ChatingContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("EMAIL");
             entity.Property(e => e.LastLogin)
-                .HasDefaultValueSql("(getdate())")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("LAST_LOGIN");
             entity.Property(e => e.Password)
@@ -85,7 +85,7 @@ public partial class ChatingContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("ACCEPTED");
             entity.Property(e => e.CreateAt)
-                .HasDefaultValueSql("(getdate())")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("CREATE_AT");
             entity.Property(e => e.User1)
@@ -144,7 +144,7 @@ public partial class ChatingContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("USERNAME");
         });
-
+    
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__NOTIFICA__3214EC2759190BC5");

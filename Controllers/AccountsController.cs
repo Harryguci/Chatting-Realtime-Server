@@ -117,7 +117,7 @@ namespace ChatingApp.Controllers
 
         // PUT: api/Accounts/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAccount(string id, Account account)
+        public async Task<IActionResult> PutAccount(Guid id, Account account)
         {
             if (id != account.Id)
             {
@@ -156,7 +156,7 @@ namespace ChatingApp.Controllers
             for (var i = 0; i <= 5 - t.ToString().Length; i++)
                 num = '0' + num;
 
-            account.Id = $"AC${num}";
+            account.Id = Guid.NewGuid();
             account.Password = SecurePasswordHasher.Hash(account.Password);
 
             _context.Accounts.Add(account);
@@ -195,7 +195,7 @@ namespace ChatingApp.Controllers
             return NoContent();
         }
 
-        private bool AccountExists(string id)
+        private bool AccountExists(Guid id)
         {
             return _context.Accounts.Any(e => e.Id == id);
         }

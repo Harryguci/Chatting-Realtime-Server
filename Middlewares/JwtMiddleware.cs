@@ -3,7 +3,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using ChatingApp.Services;
+using ChatingApp.Services.Implements;
+using ChatingApp.Services.Interfaces;
 
 namespace ChatingApp.Middlewares
 {
@@ -48,17 +49,17 @@ namespace ChatingApp.Middlewares
                 var userId = jwtToken.Claims.First(x => x.Type == "id").Value;
 
                 // attach user to context on successful jwt validation
-                context.Items["User"] = userService.GetById(userId);
+                context.Items["User"] = userService.GetById(Guid.Parse(userId));
 
                 // Add User Feature to Response
-                var account = userService.GetById(userId);
+                var account = userService.GetById(Guid.Parse(userId));
 
                 if (account != null)
                 {
                     var user = new UserFeature(account.Username,
                         account.Roles,
                         account.Email ?? "",
-                        account.LastLogin ?? DateTime.Now);
+                        account.LastLogin);
 
                     context.Features.Set<IUserFeature>(user);
                 }

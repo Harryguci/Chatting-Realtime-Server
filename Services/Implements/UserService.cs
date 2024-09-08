@@ -1,28 +1,19 @@
 ﻿using ChatingApp.Context;
 using ChatingApp.Helpers;
 using ChatingApp.Models;
+using ChatingApp.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace ChatingApp.Services
+namespace ChatingApp.Services.Implements
 {
-    public interface IUserService
-    {
-        AuthenticateResponse? Authenticate(AuthenticateRequest model);
-        IEnumerable<Account> GetAll();
-        Account? GetById(string id);
-    }
-
     public class UserService : IUserService
     {
         // users hardcoded for simplicity, store in a db with hashed passwords in production applications
         private ChatingContext _context;
-
-        //private List<Account> _users = new List<Account> {
-        //        new Account { Id = "AC$00000", Username = "User", Email = "test", Password = "test", Roles = "user" }};
 
         private readonly AppSettings _appSettings;
 
@@ -55,7 +46,7 @@ namespace ChatingApp.Services
             return _context.Accounts.ToList();
         }
 
-        public Account? GetById(string id)
+        public Account? GetById(Guid id)
         {
             return _context.Accounts.Where(x => x.Id == id).FirstOrDefault();
         }

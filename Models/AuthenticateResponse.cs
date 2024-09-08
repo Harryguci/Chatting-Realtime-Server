@@ -4,7 +4,7 @@ namespace ChatingApp.Models
 {
     public class AuthenticateResponse
     {
-        public string Id { get; set; } = null!;
+        public Guid Id { get; set; } = default;
         public string Username { get; set; } = null!;
         public string? Email { get; set; }
         public string Roles { get; set; } = null!;

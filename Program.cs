@@ -3,25 +3,13 @@ using ChatingApp.Context;
 using ChatingApp.Helpers;
 using ChatingApp.Services;
 using ChatingApp.Middlewares;
+using ChatingApp.Services.Implements;
+using ChatingApp.Services.Interfaces;
+using ChatingApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddSingleton<IWebsocketHandler, WebsocketHandler>();
-
-// configure strongly typed settings object
-builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
-
-// configure DI for application services
-builder.Services.AddScoped<IUserService, UserService>();
-
-// Add Cors for React Js
+// Add CORS for React.JS
 var myAllowSpecificOrigins = "chating-application";
 builder.Services.AddCors(options =>
 {
@@ -34,9 +22,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add the context
-builder.Services.AddDbContextPool<ChatingContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("ChatingDb")));
+ChattingModule.ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 

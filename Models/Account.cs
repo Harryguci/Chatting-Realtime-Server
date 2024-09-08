@@ -1,12 +1,11 @@
-﻿using System;
+﻿using ChatingApp.Domain.Base;
+using System;
 using System.Collections.Generic;
 
 namespace ChatingApp.Models;
 
-public partial class Account
+public partial class Account: AggregateRoot
 {
-    public string Id { get; set; } = null!;
-
     public string Username { get; set; } = null!;
 
     public string Password { get; set; } = null!;
@@ -15,11 +14,6 @@ public partial class Account
 
     public string? Email { get; set; }
 
-    public DateTime? LastLogin { get; set; }
-
-    // public virtual ICollection<FriendRequest>? FriendRequestUser1Navigations { get; set; } = new List<FriendRequest>();
-
-    // public virtual ICollection<FriendRequest>? FriendRequestUser2Navigations { get; set; } = new List<FriendRequest>();
-
+    public DateTime LastLogin { get; set; }
     public virtual ICollection<RoomAccount>? RoomAccounts { get; set; } = new List<RoomAccount>();
 }
