@@ -14,6 +14,6 @@ public partial class Account: AggregateRoot
 
     public string? Email { get; set; }
 
-    public DateTime LastLogin { get; set; }
+    public DateTime? LastLogin { get; set; }
     public virtual ICollection<RoomAccount>? RoomAccounts { get; set; } = new List<RoomAccount>();
 }

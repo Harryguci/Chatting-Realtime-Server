@@ -37,5 +37,6 @@ public static class ChattingModule
                        .EnableDetailedErrors()
                );
 
+        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     }
 }

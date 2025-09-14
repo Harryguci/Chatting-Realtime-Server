@@ -1,6 +1,8 @@
-﻿using ChatingApp.Context;
+﻿using AutoMapper;
+using ChatingApp.Context;
 using ChatingApp.Helpers;
 using ChatingApp.Models;
+using ChatingApp.Models.Dtos;
 using ChatingApp.Services.Implements;
 using ChatingApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -20,14 +22,16 @@ namespace ChatingApp.Controllers
         private readonly ChatingContext _context;
         private IUserService _userService;
         private readonly AppSettings _appSettings;
+        private readonly IMapper _mapper;
         
         private static readonly string MySecret = "asdv234234^&%&^%&^hjsdfb2%%%";
 
-        public AuthController(ChatingContext context, IUserService userService, IOptions<AppSettings> appSettings)
+        public AuthController(ChatingContext context, IUserService userService, IOptions<AppSettings> appSettings, IMapper mapper)
         {
             this._context = context;
             this._userService = userService;
             _appSettings = appSettings.Value;
+            _mapper = mapper;
         }
 
         [HttpPost("Login")]
@@ -45,33 +49,30 @@ namespace ChatingApp.Controllers
                 return BadRequest();
             }
 
-            currentUser.LastLogin = default;
+            currentUser.LastLogin = null;
 
-            HttpClient httpClient = new HttpClient();
-            using StringContent jsonContent = new(
-                           JsonSerializer.Serialize(currentUser),
-                           Encoding.UTF8,
-                           "application/json");
+            //HttpClient httpClient = new HttpClient();
+            //using StringContent jsonContent = new(
+            //               JsonSerializer.Serialize(currentUser),
+            //               Encoding.UTF8,
+            //               "application/json");
 
-            using HttpResponseMessage response2 = await new HttpClient().PutAsync($"{_appSettings.URI}/api/Accounts/{currentUser.Id}", jsonContent);
+            //using HttpResponseMessage response2 = await new HttpClient().PutAsync($"{_appSettings.URI}/api/Accounts/{currentUser.Id}", jsonContent);
 
-            response2.EnsureSuccessStatusCode();
+            //response2.EnsureSuccessStatusCode();
 
-            var jsonResponse = await response2.Content.ReadAsStringAsync();
+            //var jsonResponse = await response2.Content.ReadAsStringAsync();
 
             return Ok(response);
         }
 
         [HttpPost("Signup")]
-        public async Task<IActionResult> SignUp([Bind("id,username,password,roles")] Account account)
+        public async Task<IActionResult> SignUp([Bind("id,username,password,roles")] AccountDto accountDto)
         {
-            // AC$000000
-            var number = _context.Accounts.Count();
             var id = Guid.NewGuid();
+            accountDto.Id = id;
 
-            account.Id = id;
-
-            if (_context.Accounts.Any(p => p.Username == account.Username))
+            if (_context.Accounts.Any(p => p.Username == accountDto.Username))
             {
                 return BadRequest(new
                 {
@@ -79,10 +80,11 @@ namespace ChatingApp.Controllers
                 });
             }
 
-            var hashPass = SecurePasswordHasher.Hash(account.Password);
+            var hashPass = SecurePasswordHasher.Hash(accountDto.Password);
 
-            account.Password = hashPass;
+            accountDto.Password = hashPass;
 
+            var account = _mapper.Map<Account>(accountDto);
             _context.Accounts.Add(account);
 
             try
@@ -97,7 +99,7 @@ namespace ChatingApp.Controllers
                 });
             }
 
-            return Ok(account);
+            return Ok(accountDto);
         }
 
         [HttpPut("Logout")]

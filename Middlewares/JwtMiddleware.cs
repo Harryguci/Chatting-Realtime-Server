@@ -59,7 +59,7 @@ namespace ChatingApp.Middlewares
                     var user = new UserFeature(account.Username,
                         account.Roles,
                         account.Email ?? "",
-                        account.LastLogin);
+                        account.LastLogin.Value);
 
                     context.Features.Set<IUserFeature>(user);
                 }

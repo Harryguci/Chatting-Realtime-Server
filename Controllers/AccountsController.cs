@@ -10,6 +10,8 @@ using ChatingApp.Models;
 using ChatingApp.Helpers;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
+using AutoMapper;
+using ChatingApp.Models.Dtos;
 
 namespace ChatingApp.Controllers
 {
@@ -18,10 +20,12 @@ namespace ChatingApp.Controllers
     public class AccountsController : ControllerBase
     {
         private readonly ChatingContext _context;
+        private readonly IMapper _mapper;
 
-        public AccountsController(ChatingContext context)
+        public AccountsController(ChatingContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Accounts
@@ -38,16 +42,17 @@ namespace ChatingApp.Controllers
 
         // GET: api/Accounts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetAccount(string id)
+        public async Task<ActionResult<AccountDto>> GetAccount(Guid id)
         {
             var account = await _context.Accounts.FindAsync(id);
+            var accountDtoMapped = _mapper.Map<AccountDto>(account);
 
             if (account == null)
             {
                 return NotFound();
             }
 
-            return account;
+            return accountDtoMapped;
         }
 
         [HttpGet("Find/{username}")]
